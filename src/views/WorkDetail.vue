@@ -43,13 +43,26 @@
         </div>
 
         <div v-if="work.type === 'video'" class="video-player">
-          <video
-            ref="videoRef"
-            :src="work.videoUrl"
-            :poster="work.cover"
-            controls
-            class="video-element"
-          ></video>
+          <div v-if="work.videoUrl" class="video-wrapper">
+            <video
+              ref="videoRef"
+              :src="work.videoUrl"
+              :poster="work.cover"
+              controls
+              class="video-element"
+            ></video>
+          </div>
+          <div v-else class="video-placeholder">
+            <img :src="work.cover" :alt="work.title" class="placeholder-image" />
+            <div class="placeholder-overlay">
+              <div class="play-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 5V19L19 12L8 5Z"/>
+                </svg>
+              </div>
+              <span class="placeholder-text">视频预览</span>
+            </div>
+          </div>
           <div class="video-info">
             <span class="video-duration">时长: {{ work.duration }}</span>
           </div>
@@ -307,10 +320,65 @@ onMounted(() => {
   margin-bottom: 32px;
 }
 
+.video-wrapper {
+  width: 100%;
+}
+
 .video-element {
   width: 100%;
   border-radius: var(--radius-lg);
   background: #000;
+}
+
+.video-placeholder {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.placeholder-image {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.placeholder-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.play-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 175, 55, 0.9);
+  border-radius: 50%;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.play-icon svg {
+  width: 32px;
+  height: 32px;
+  margin-left: 4px;
+}
+
+.placeholder-text {
+  font-size: 16px;
+  color: #fff;
+  font-weight: 500;
 }
 
 .video-info {
