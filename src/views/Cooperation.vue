@@ -151,11 +151,13 @@
                   class="form-select"
                 >
                   <option value="" disabled>请选择预算范围（选填）</option>
-                  <option value="5k-1w">5,000 - 10,000 元</option>
-                  <option value="1w-3w">10,000 - 30,000 元</option>
-                  <option value="3w-5w">30,000 - 50,000 元</option>
-                  <option value="5w-10w">50,000 - 100,000 元</option>
-                  <option value="10w+">100,000 元以上</option>
+                  <option
+                    v-for="opt in budgetOptions"
+                    :key="opt.value"
+                    :value="opt.value"
+                  >
+                    {{ opt.label }}
+                  </option>
                 </select>
               </div>
 
@@ -245,18 +247,27 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useDataStore } from '@/stores/dataStore'
 import { useToastStore } from '@/stores/toast'
 
 const dataStore = useDataStore()
 const toastStore = useToastStore()
 
-const cooperationTypesList = computed(() => dataStore.cooperationTypesList)
-const submittedRecords = computed(() => dataStore.submittedRecords)
+const cooperationTypesList = ref([...dataStore.cooperationTypesList])
+const submittedRecords = ref([...dataStore.submittedRecords])
 
 const isSubmitting = ref(false)
 const showRecords = ref(false)
+const isDataReady = ref(false)
+
+const budgetOptions = [
+  { value: '5k-1w', label: '5,000 - 10,000 元' },
+  { value: '1w-3w', label: '10,000 - 30,000 元' },
+  { value: '3w-5w', label: '30,000 - 50,000 元' },
+  { value: '5w-10w', label: '50,000 - 100,000 元' },
+  { value: '10w+', label: '100,000 元以上' }
+]
 
 const defaultFormData = {
   name: '',
@@ -269,6 +280,10 @@ const defaultFormData = {
 }
 
 const formData = ref({ ...defaultFormData })
+
+onMounted(() => {
+  isDataReady.value = true
+})
 
 function getTypeIcon(type) {
   const icons = {
@@ -352,6 +367,7 @@ async function submitForm() {
   }
 
   dataStore.addCooperationRecord(record)
+  submittedRecords.value = [...dataStore.submittedRecords]
 
   formData.value = { ...defaultFormData }
 
