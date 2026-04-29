@@ -266,3 +266,13 @@ export const cooperationTypes = [
   { value: 'event', label: '活动邀请' },
   { value: 'other', label: '其他合作' }
 ]
+
+export const allWorks = [...imageWorks, ...videoWorks]
+
+export function getWorkById(id) {
+  return allWorks.find(w => w.id === parseInt(id))
+}
+
+export function getColumnById(id) {
+  return columns.find(c => c.id === parseInt(id))
+}

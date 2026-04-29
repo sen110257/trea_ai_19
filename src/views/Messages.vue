@@ -141,17 +141,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { messages } from '@/data/mockData'
+import { ref, computed } from 'vue'
+import { useDataStore } from '@/stores/dataStore'
 import { useToastStore } from '@/stores/toast'
 
+const dataStore = useDataStore()
 const toastStore = useToastStore()
 
 const isSubmitting = ref(false)
 const currentPage = ref(1)
 const pageSize = 5
 
-const allMessages = ref([...messages])
+const allMessages = computed(() => dataStore.messagesList)
 
 const formData = ref({
   nickname: '',
@@ -169,13 +170,9 @@ const currentPageMessages = computed(() => {
 })
 
 function toggleLike(message) {
-  if (!message.userLiked) {
-    message.likes++
-    message.userLiked = true
+  const result = dataStore.toggleMessageLike(message.id)
+  if (result) {
     toastStore.showToast('点赞成功', 'success')
-  } else {
-    message.likes--
-    message.userLiked = false
   }
 }
 
@@ -211,7 +208,7 @@ async function submitMessage() {
     reply: null
   }
 
-  allMessages.value.unshift(newMessage)
+  dataStore.addMessage(newMessage)
   currentPage.value = 1
 
   formData.value = {
@@ -222,12 +219,6 @@ async function submitMessage() {
   isSubmitting.value = false
   toastStore.showToast('留言发布成功！', 'success')
 }
-
-onMounted(() => {
-  allMessages.value.forEach(msg => {
-    msg.userLiked = false
-  })
-})
 </script>
 
 <style scoped>
