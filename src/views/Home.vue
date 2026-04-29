@@ -178,15 +178,14 @@
 </template>
 
 <script setup>
-import { blogger, imageWorks, videoWorks, columns } from '@/data/mockData'
+import { computed } from 'vue'
+import { useDataStore } from '@/stores/dataStore'
 
-const featuredWorks = [...imageWorks, ...videoWorks]
-  .sort((a, b) => {
-    if (a.hot && !b.hot) return -1
-    if (!a.hot && b.hot) return 1
-    return new Date(b.createdAt) - new Date(a.createdAt)
-  })
-  .slice(0, 6)
+const dataStore = useDataStore()
+
+const blogger = dataStore.bloggerData
+const columns = dataStore.columnsList
+const featuredWorks = dataStore.featuredWorks
 
 function formatNumber(num) {
   if (num >= 10000) {

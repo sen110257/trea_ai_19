@@ -245,16 +245,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { cooperationTypes } from '@/data/mockData'
+import { ref, computed } from 'vue'
+import { useDataStore } from '@/stores/dataStore'
 import { useToastStore } from '@/stores/toast'
 
+const dataStore = useDataStore()
 const toastStore = useToastStore()
 
-const cooperationTypesList = cooperationTypes
+const cooperationTypesList = computed(() => dataStore.cooperationTypesList)
+const submittedRecords = computed(() => dataStore.submittedRecords)
+
 const isSubmitting = ref(false)
 const showRecords = ref(false)
-const submittedRecords = ref([])
 
 const defaultFormData = {
   name: '',
@@ -291,7 +293,7 @@ function getTypeDesc(type) {
 }
 
 function getTypeLabel(value) {
-  const type = cooperationTypesList.find(t => t.value === value)
+  const type = cooperationTypesList.value.find(t => t.value === value)
   return type?.label || '其他合作'
 }
 
@@ -328,7 +330,7 @@ async function submitForm() {
 
   isSubmitting.value = true
 
-  await new Promise(resolve => setTimeout(resolve, 1200))
+  await new Promise(resolve => setTimeout(resolve, 800))
 
   const record = {
     id: Date.now(),
@@ -349,7 +351,7 @@ async function submitForm() {
     }).replace(/\//g, '-')
   }
 
-  submittedRecords.value.unshift(record)
+  dataStore.addCooperationRecord(record)
 
   formData.value = { ...defaultFormData }
 
@@ -358,12 +360,6 @@ async function submitForm() {
 
   toastStore.showToast('预约提交成功！我会尽快与您联系', 'success')
 }
-
-onMounted(() => {
-  if (formData.value.type === '') {
-    formData.value.type = ''
-  }
-})
 </script>
 
 <style scoped>

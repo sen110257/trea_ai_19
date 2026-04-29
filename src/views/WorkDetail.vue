@@ -131,21 +131,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { imageWorks, videoWorks } from '@/data/mockData'
+import { useDataStore } from '@/stores/dataStore'
 import { useToastStore } from '@/stores/toast'
+import SmartImage from '@/components/SmartImage.vue'
 
 const route = useRoute()
 const router = useRouter()
+const dataStore = useDataStore()
 const toastStore = useToastStore()
 
 const videoRef = ref(null)
 const work = ref(null)
 const currentIndex = ref(0)
 const isLiked = ref(false)
-
-const allWorks = [...imageWorks, ...videoWorks]
 
 const allImages = computed(() => {
   if (work.value && work.value.type === 'image') {
@@ -156,21 +156,46 @@ const allImages = computed(() => {
 
 const currentImage = computed(() => allImages.value[currentIndex.value] || '')
 
+function loadWorkData() {
+  const workId = route.params.id
+  const foundWork = dataStore.findWorkById(workId)
+  if (foundWork) {
+    work.value = { ...foundWork }
+    isLiked.value = foundWork.userLiked || false
+    currentIndex.value = 0
+  } else {
+    work.value = null
+  }
+}
+
+function formatNumber(num) {
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + 'w'
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k'
+  }
+  return num.toString()
+}
+
 function goBack() {
   router.back()
 }
 
 function toggleLike() {
-  isLiked.value = !isLiked.value
-  if (work.value) {
-    work.value.likes += isLiked.value ? 1 : -1
-  }
-  toastStore.showToast(isLiked.value ? '点赞成功' : '已取消点赞', 'success')
+  if (!work.value) return
+  const liked = dataStore.toggleWorkLike(work.value.id)
+  isLiked.value = liked
+  work.value.likes += liked ? 1 : -1
+  toastStore.showToast(liked ? '点赞成功' : '已取消点赞', 'success')
 }
 
+watch(() => route.params.id, () => {
+  loadWorkData()
+}, { immediate: true })
+
 onMounted(() => {
-  const workId = parseInt(route.params.id)
-  work.value = allWorks.find(w => w.id === workId) || null
+  loadWorkData()
 })
 </script>
 

@@ -177,13 +177,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { columns } from '@/data/mockData'
+import { useDataStore } from '@/stores/dataStore'
 import { useToastStore } from '@/stores/toast'
 
 const route = useRoute()
 const router = useRouter()
+const dataStore = useDataStore()
 const toastStore = useToastStore()
 
 const column = ref(null)
@@ -192,6 +193,20 @@ const selectedChapter = ref(null)
 const freeChaptersCount = computed(() => {
   return column.value?.chapters.filter(c => c.free).length || 0
 })
+
+function loadColumnData() {
+  const columnId = route.params.id
+  const foundColumn = dataStore.findColumnById(columnId)
+  if (foundColumn) {
+    column.value = { ...foundColumn }
+    const firstChapter = column.value.chapters.find(c => c.free) || column.value.chapters[0]
+    if (firstChapter) {
+      selectedChapter.value = firstChapter
+    }
+  } else {
+    column.value = null
+  }
+}
 
 function goBack() {
   router.back()
@@ -211,8 +226,11 @@ function selectChapter(chapter) {
 
 function purchaseColumn() {
   if (!column.value) return
-  column.value.purchased = true
-  toastStore.showToast('购买成功！已解锁全部章节', 'success')
+  const success = dataStore.purchaseColumn(column.value.id)
+  if (success) {
+    column.value.purchased = true
+    toastStore.showToast('购买成功！已解锁全部章节', 'success')
+  }
 }
 
 function startTrial() {
@@ -221,6 +239,8 @@ function startTrial() {
   if (freeChapter) {
     selectedChapter.value = freeChapter
     toastStore.showToast('开始免费试看', 'success')
+  } else {
+    toastStore.showToast('该专栏暂无免费试看章节', 'info')
   }
 }
 
@@ -243,12 +263,12 @@ function formatNumber(num) {
   return num.toString()
 }
 
+watch(() => route.params.id, () => {
+  loadColumnData()
+}, { immediate: true })
+
 onMounted(() => {
-  const columnId = parseInt(route.params.id)
-  column.value = columns.find(c => c.id === columnId) || null
-  if (column.value) {
-    selectedChapter.value = column.value.chapters[0]
-  }
+  loadColumnData()
 })
 </script>
 

@@ -109,7 +109,9 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { imageWorks, videoWorks } from '@/data/mockData'
+import { useDataStore } from '@/stores/dataStore'
+
+const dataStore = useDataStore()
 
 const tabs = [
   { value: 'all', label: '全部作品' },
@@ -125,28 +127,9 @@ const sorts = [
 const activeTab = ref('all')
 const activeSort = ref('latest')
 
-const allWorks = [...imageWorks, ...videoWorks]
-
 const filteredWorks = computed(() => {
-  let works = [...allWorks]
-
-  if (activeTab.value === 'image') {
-    works = works.filter(w => w.type === 'image')
-  } else if (activeTab.value === 'video') {
-    works = works.filter(w => w.type === 'video')
-  }
-
-  if (activeSort.value === 'hot') {
-    works.sort((a, b) => {
-      if (a.hot && !b.hot) return -1
-      if (!a.hot && b.hot) return 1
-      return (b.views + b.likes) - (a.views + a.likes)
-    })
-  } else {
-    works.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }
-
-  return works
+  const works = dataStore.getWorksByType(activeTab.value)
+  return dataStore.sortWorks(works, activeSort.value)
 })
 
 function formatNumber(num) {
